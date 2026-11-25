@@ -4,31 +4,63 @@ on:
   push:
     paths:
       - 'code/**'
+      - '.github/workflows/build.yml'
   pull_request:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+    env:
+      ARDUINO_DIRECTORIES_DATA: ${{ github.workspace }}/.cache/arduino/data
+      ARDUINO_DIRECTORIES_USER: ${{ github.workspace }}/.cache/arduino/user
+      ARDUINO_BUILD_CACHE_PATH: ${{ github.workspace }}/.cache/arduino/compilation
+      ESP32_CORE_VERSION: '3.3.10'
+      PDULIB_VERSION: '0.5.11'
+      READYMAIL_VERSION: '0.4.2'
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6
     
     - name: Setup Arduino CLI
       uses: arduino/setup-arduino-cli@v2
+      with:
+        version: 1.5.1
     
-    - name: Install ESP32 platform
+    - name: Restore Arduino dependencies
+      id: deps
+      uses: actions/cache@v5
+      with:
+        path: |
+          .cache/arduino/data
+          .cache/arduino/user
+        key: ${{ runner.os }}-arduino-deps-v1-${{ hashFiles('.github/workflows/build.yml') }}
+
+    - name: Restore compilation cache
+      uses: actions/cache@v5
+      with:
+        path: .cache/arduino/compilation
+        key: ${{ runner.os }}-arduino-build-v1-${{ hashFiles('.github/workflows/build.yml') }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: |
+          ${{ runner.os }}-arduino-build-v1-${{ hashFiles('.github/workflows/build.yml') }}-
+
+    - name: Configure Arduino CLI
       run: |
         arduino-cli config init
         arduino-cli config add board_manager.additional_urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+
+    - name: Install ESP32 platform
+      if: steps.deps.outputs.cache-hit != 'true'
+      run: |
         arduino-cli core update-index
-        arduino-cli core install esp32:esp32
+        arduino-cli core install "esp32:esp32@${ESP32_CORE_VERSION}"
     
     - name: Install dependencies
+      if: steps.deps.outputs.cache-hit != 'true'
       run: |
-        arduino-cli lib install "pdulib"
-        arduino-cli lib install "ReadyMail"
+        arduino-cli lib install "pdulib@${PDULIB_VERSION}"
+        arduino-cli lib install "ReadyMail@${READYMAIL_VERSION}"
     
     - name: Compile firmware
       run: |

@@ -27,6 +27,8 @@ jobs:
         run: |
           for tag in v6.1.1 release-v6.1 latest; do
             if docker pull -q "espressif/idf:${tag}" >/dev/null 2>&1; then
+              digest=$(docker image inspect "espressif/idf:${tag}" --format '{{.Id}}')
+              echo "digest=${digest#sha256:}" >> "$GITHUB_OUTPUT"
               echo "image=espressif/idf:${tag}" >> "$GITHUB_OUTPUT"
               echo "使用镜像 espressif/idf:${tag}"
               exit 0
@@ -35,15 +37,29 @@ jobs:
           echo "没有拉到任何 ESP-IDF 镜像" >&2
           exit 1
 
+      # 不缓存 build/：版本号每次变化，由 ccache 按编译输入复用目标文件。
+      - name: 恢复编译缓存
+        uses: actions/cache@v5
+        with:
+          path: .cache/idf-ccache
+          key: ${{ runner.os }}-idf-ccache-v1-${{ steps.idf.outputs.digest }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ${{ runner.os }}-idf-ccache-v1-${{ steps.idf.outputs.digest }}-
+
       - name: 编译并生成合并固件 / OTA 包
         run: |
+          mkdir -p .cache/idf-ccache
           docker run --rm \
             -v "$PWD:/project" \
             -w /project/idf \
+            -e IDF_CCACHE_ENABLE=1 \
+            -e CCACHE_DIR=/project/.cache/idf-ccache \
+            -e CCACHE_BASEDIR=/project \
+            -e CCACHE_MAXSIZE=500M \
             -e IDF_TARGET=esp32c3 \
             -e PROJECT_VER="${{ steps.ver.outputs.value }}" \
             "${{ steps.idf.outputs.image }}" \
-            /bin/bash -lc 'idf.py build && \
+            /bin/bash -lc 'ccache --zero-stats && idf.py build && ccache --show-stats && \
               cp build/sms_forwarder.bin build/sms_forwarder-ota.bin && \
               python -m esptool --chip esp32c3 merge_bin \
                 -o build/sms_forwarder-merged.bin \
@@ -52,6 +68,8 @@ jobs:
                 0x8000 build/partition_table/partition-table.bin \
                 0x10000 build/ota_data_initial.bin \
                 0x20000 build/sms_forwarder.bin'
+          # ccache 由 root 创建，交还权限以便 Actions 保存和下次恢复。
+          sudo chown -R "$(id -u):$(id -g)" .cache/idf-ccache
           # build/ 是容器里 root 建的，runner 用户没有写权限，产物先复制到 dist/
           mkdir -p dist
           cp idf/build/sms_forwarder-merged.bin idf/build/sms_forwarder-ota.bin dist/
