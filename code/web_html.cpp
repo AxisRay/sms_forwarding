@@ -332,6 +332,10 @@ const char* htmlPage = R"rawliteral(
           </div>
         </div>
       </div>
+      <div class="card"><div class="card-header">关键字白名单</div><div class="card-body">
+        <textarea class="form-textarea" name="keywordWhiteList" rows="5" placeholder="每行一个关键字">%KEYWORD_WHITE_LIST%</textarea>
+        <p class="form-hint">留空转发全部短信；正文包含任意关键字才转发到邮件和推送通道，区分大小写，忽略空行和首尾空格。系统通知和管理员命令不受影响。</p>
+      </div></div>
       <button type="submit" class="btn btn-primary btn-block btn-save">保存配置</button>
       </form>
     </div>

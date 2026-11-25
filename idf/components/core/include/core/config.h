@@ -66,6 +66,7 @@ typedef struct {
     char web_user[CFG_SMALL_LEN];
     char web_pass[CFG_SMALL_LEN];
     char blacklist[CFG_BLACKLIST_LEN];
+    char keyword_whitelist[512]; // 全局短信关键字白名单，换行分隔
     /* 选网（键名与 Arduino 版一致：operatorMode / operatorCode，新增 operatorAct） */
     uint8_t operator_mode; /* 0=自动，1=手动 */
     uint8_t operator_act;  /* 0=2G / 2=3G / 7=LTE */
@@ -114,3 +115,5 @@ void config_state_set_last_ip(const char *ip);
 bool config_sender_is_admin(const char *sender);
 /** 发送者是否在号码黑名单中。 */
 bool config_sender_blocked(const char *sender);
+/** 正文包含任一关键字时通过；空白名单放行。 */
+bool config_message_allowed(const char *message);

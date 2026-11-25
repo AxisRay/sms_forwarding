@@ -13,6 +13,7 @@ void saveConfig() {
   preferences.putString("webUser", config.webUser);
   preferences.putString("webPass", config.webPass);
   preferences.putString("numBlkList", config.numberBlackList);
+  preferences.putString("kwWhiteList", config.keywordWhiteList);
   preferences.putUChar("operatorMode", config.operatorMode);
   preferences.putString("operatorCode", config.operatorCode);
   
@@ -44,6 +45,7 @@ void loadConfig() {
   config.webUser = preferences.getString("webUser", DEFAULT_WEB_USER);
   config.webPass = preferences.getString("webPass", DEFAULT_WEB_PASS);
   config.numberBlackList = preferences.getString("numBlkList", "");
+  config.keywordWhiteList = preferences.getString("kwWhiteList", "");
   config.operatorMode = preferences.getUChar("operatorMode", 0);
   config.operatorCode = preferences.getString("operatorCode", "");
   if (config.operatorMode > 1) config.operatorMode = 0;

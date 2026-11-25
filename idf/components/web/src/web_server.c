@@ -338,6 +338,7 @@ static uint32_t hash_section(const app_config_t *c, int section)
         break;
     case 3:
         h = fnv1a(c->blacklist, sizeof(c->blacklist), h);
+        h = fnv1a(c->keyword_whitelist, sizeof(c->keyword_whitelist), h);
         break;
     case 4:
         h = fnv1a(c->channels, (size_t)c->channel_count * sizeof(push_channel_t), h);
@@ -411,6 +412,10 @@ esp_err_t handler_save(httpd_req_t *req)
     }
     if (web_form_get(body, "numberBlackList", value, sizeof(value))) {
         snprintf(cfg->blacklist, sizeof(cfg->blacklist), "%s", value);
+    }
+
+    if (web_form_get(body, "keywordWhiteList", value, sizeof(value))) {
+        snprintf(cfg->keyword_whitelist, sizeof(cfg->keyword_whitelist), "%s", value);
     }
 
     /* 选网配置：先完整校验再落盘，避免存进半套配置 */
@@ -565,7 +570,7 @@ esp_err_t handler_save(httpd_req_t *req)
         sbuf_append(&items, "\n· 管理员号码");
     }
     if (ch_black) {
-        sbuf_append(&items, "\n· 号码黑名单");
+        sbuf_append(&items, "\n· 短信过滤规则");
     }
     if (ch_oper) {
         sbuf_append(&items, "\n· 选网配置（重启设备后生效）");
@@ -774,6 +779,7 @@ esp_err_t handler_config(httpd_req_t *req)
     append_str_field(&out, "admin_phone", cfg->admin_phone, true);
     append_str_field(&out, "self_phone", cfg->self_phone, true);
     append_str_field(&out, "blacklist", cfg->blacklist, true);
+    append_str_field(&out, "keyword_whitelist", cfg->keyword_whitelist, true);
     sbuf_printf(&out, "\"operator_mode\":%u,\"operator_act\":%u,",
                 (unsigned)cfg->operator_mode, (unsigned)cfg->operator_act);
     append_str_field(&out, "operator_code", cfg->operator_code, true);

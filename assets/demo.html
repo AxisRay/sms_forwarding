@@ -445,6 +445,11 @@ body.chan-dirty main{padding-bottom:150px}
         <div class="field" style="margin-top:10px"><textarea id="blacklist" rows="3" placeholder="每行一个号码"></textarea></div>
         <div class="row"><button class="btn pri" data-save="blacklist"><span class="spinner"></span>保存黑名单</button></div>
       </div>
+      <div class="card" style="margin-top:14px">
+        <div class="head">关键字白名单</div>
+        <div class="field" style="margin-top:10px"><textarea id="keywordWhitelist" rows="3" placeholder="每行一个关键字"></textarea><span class="tip">留空则转发全部短信；正文包含任意一个关键字才转发到邮件和推送通道，区分大小写，忽略空行和首尾空格；系统通知和管理员命令不受影响</span></div>
+        <div class="row"><button class="btn pri" data-save="keywords"><span class="spinner"></span>保存白名单</button></div>
+      </div>
     </section>
 
         <section class="page" id="p-admin">
@@ -1076,7 +1081,7 @@ jsQR 1.4.0 — https://github.com/cozmo/jsQR — Apache License 2.0
   var MAP = {
     webUser: "web_user", webPass: "web_pass", smtpServer: "smtp_server", smtpPort: "smtp_port",
     smtpUser: "smtp_user", smtpPass: "smtp_pass", smtpSendTo: "smtp_to", adminPhone: "admin_phone",
-    selfPhone: "self_phone", numberBlackList: "blacklist", operatorCode: "operator_code"
+    selfPhone: "self_phone", numberBlackList: "blacklist", keywordWhiteList: "keyword_whitelist", operatorCode: "operator_code"
   };
   function applySave(p){
     var k;
@@ -1568,6 +1573,7 @@ jsQR 1.4.0 — https://github.com/cozmo/jsQR — Apache License 2.0
       $('adminPhone').value = cfg.admin_phone || '';
       $('selfPhone').value = cfg.self_phone || '';
       $('blacklist').value = cfg.blacklist || '';
+      $('keywordWhitelist').value = cfg.keyword_whitelist || '';
       $('operMode').value = cfg.operator_mode === 1 ? '1' : '0';
       $('operCode').value = cfg.operator_code || '';
       $('operAct').value = (cfg.operator_act === 0 || cfg.operator_act === 2 || cfg.operator_act === 7)
@@ -1729,6 +1735,7 @@ jsQR 1.4.0 — https://github.com/cozmo/jsQR — Apache License 2.0
     if (scope === 'admin') p.append('adminPhone', $('adminPhone').value);
     if (scope === 'selfphone') p.append('selfPhone', ($('selfPhone').value || '').trim());
     if (scope === 'blacklist') p.append('numberBlackList', $('blacklist').value);
+    if (scope === 'keywords') p.append('keywordWhiteList', $('keywordWhitelist').value);
     if (scope === 'operator') {
       p.append('operatorMode', $('operMode').value);
       p.append('operatorCode', ($('operCode').value || '').trim());
@@ -2648,6 +2655,10 @@ jsQR 1.4.0 — https://github.com/cozmo/jsQR — Apache License 2.0
     '保存账号': 'Save account',
     '保存选网配置': 'Save network selection',
     '保存邮件设置': 'Save email settings',
+    '关键字白名单': 'Keyword whitelist',
+    '每行一个关键字': 'One keyword per line',
+    '保存白名单': 'Save whitelist',
+    '留空则转发全部短信；正文包含任意一个关键字才转发到邮件和推送通道，区分大小写，忽略空行和首尾空格；系统通知和管理员命令不受影响': 'Leave empty to forward all SMS. Otherwise, forward to email and push channels only when the body contains any keyword (case-sensitive). Blank lines and surrounding spaces are ignored. System notifications and admin commands are unaffected.',
     '保存黑名单': 'Save blacklist',
     '全部': 'All',
     '关于': 'About',

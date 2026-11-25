@@ -43,6 +43,7 @@ struct Config {
   PushChannel pushChannels[MAX_PUSH_CHANNELS];  // 多推送通道
   String webUser;      // Web管理账号
   String webPass;      // Web管理密码
+  String keywordWhiteList; // 全局关键字白名单（换行分隔）
   String numberBlackList;  // 号码黑名单（换行符分隔）
   uint8_t operatorMode;     // 0=自动选网, 1=手动选网
   String operatorCode;      // PLMN（MCC+MNC，例如 46000）

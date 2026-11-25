@@ -92,6 +92,7 @@ void handleRoot() {
   html.replace("%SMTP_SEND_TO%", config.smtpSendTo);
   html.replace("%ADMIN_PHONE%", config.adminPhone);
   html.replace("%NUMBER_BLACK_LIST%", config.numberBlackList);
+  html.replace("%KEYWORD_WHITE_LIST%", config.keywordWhiteList);
   html.replace("%OP_MODE_AUTO%", config.operatorMode == 0 ? " selected" : "");
   html.replace("%OP_MODE_MANUAL%", config.operatorMode == 1 ? " selected" : "");
   html.replace("%OPERATOR_CODE%", config.operatorCode);
@@ -890,6 +891,9 @@ void handleSave() {
   // 管理员 & 黑名单表单：只在字段存在时更新
   if (server.hasArg("adminPhone")) {
     config.adminPhone = server.arg("adminPhone");
+  }
+  if (server.hasArg("keywordWhiteList")) {
+    config.keywordWhiteList = server.arg("keywordWhiteList");
   }
   if (server.hasArg("numberBlackList")) {
     config.numberBlackList = server.arg("numberBlackList");

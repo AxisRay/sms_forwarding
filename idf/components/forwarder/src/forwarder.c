@@ -139,6 +139,10 @@ static void forwarder_task(void *arg)
             }
         }
 
+        if (!config_message_allowed(ev->text)) {
+            log_line("短信未命中关键字白名单，跳过转发");
+            continue;
+        }
         notify_sms(ev->sender, ev->text, ev->timestamp);
     }
 }

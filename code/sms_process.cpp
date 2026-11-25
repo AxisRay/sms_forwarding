@@ -289,6 +289,24 @@ void processSmsContent(const char* sender, const char* text, const char* timesta
     }
   }
 
+  bool hasKeyword = false;
+  bool matched = false;
+  for (int start = 0; start < (int)config.keywordWhiteList.length();) {
+    int end = config.keywordWhiteList.indexOf('\n', start);
+    if (end < 0) end = config.keywordWhiteList.length();
+    String keyword = config.keywordWhiteList.substring(start, end);
+    keyword.trim();
+    if (keyword.length()) {
+      hasKeyword = true;
+      if (String(text).indexOf(keyword) >= 0) { matched = true; break; }
+    }
+    start = end + 1;
+  }
+  if (hasKeyword && !matched) {
+    logCaptureLn(String("短信未命中关键字白名单，跳过转发"));
+    return;
+  }
+
   // 发送通知http（推送到所有启用的通道）
   sendSMSToServer(sender, text, timestamp);
   // 发送通知邮件

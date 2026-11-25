@@ -88,6 +88,7 @@ static void load_all(void)
     load_str("webUser", s_config.web_user, sizeof(s_config.web_user), DEFAULT_WEB_USER);
     load_str("webPass", s_config.web_pass, sizeof(s_config.web_pass), DEFAULT_WEB_PASS);
     load_str("numBlkList", s_config.blacklist, sizeof(s_config.blacklist), "");
+    load_str("kwWhiteList", s_config.keyword_whitelist, sizeof(s_config.keyword_whitelist), "");
 
     /* 选网：operatorMode/operatorCode 沿用 Arduino 版键名，operatorAct 为新增 */
     uint8_t op_mode = OPERATOR_MODE_AUTO;
@@ -207,6 +208,7 @@ void config_save_locked(void)
     nvs_set_str(s_nvs, "webUser", s_config.web_user);
     nvs_set_str(s_nvs, "webPass", s_config.web_pass);
     nvs_set_str(s_nvs, "numBlkList", s_config.blacklist);
+    nvs_set_str(s_nvs, "kwWhiteList", s_config.keyword_whitelist);
 
     nvs_set_u8(s_nvs, "operatorMode", s_config.operator_mode);
     nvs_set_u8(s_nvs, "operatorAct", s_config.operator_act);
@@ -391,4 +393,31 @@ bool config_sender_blocked(const char *sender)
     }
     config_unlock();
     return blocked;
+}
+
+/* 逐行匹配原始正文，避免推送模板或发送者号码影响结果。 */
+bool config_message_allowed(const char *message)
+{
+    app_config_t *cfg = config_lock();
+    bool has_keyword = false;
+    bool matched = false;
+    const char *p = cfg->keyword_whitelist;
+    while (*p) {
+        const char *end = strchr(p, '\n');
+        if (!end) end = p + strlen(p);
+        const char *next = *end ? end + 1 : end;
+        while (p < end && (*p == ' ' || *p == '\t' || *p == '\r')) p++;
+        while (end > p && (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\r')) end--;
+        size_t len = (size_t)(end - p);
+        if (len) {
+            has_keyword = true;
+            for (const char *m = message ? message : ""; *m; m++) {
+                if (strncmp(m, p, len) == 0) { matched = true; break; }
+            }
+        }
+        if (matched) break;
+        p = next;
+    }
+    config_unlock();
+    return !has_keyword || matched;
 }

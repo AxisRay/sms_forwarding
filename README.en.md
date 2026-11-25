@@ -32,6 +32,8 @@
 > Multiple physical SIMs online at once (multi-SIM control), calls, dialing, public APIs and automation (auto-reply / auto actions)
 > **will never be supported**. Please do not open issues or PRs about them.
 
+Global keyword whitelist: enter one keyword per line on the push channels page. SMS is forwarded to email and push channels only if its body contains any keyword. Leave empty to allow all SMS. Matching is case-sensitive; blank lines and surrounding spaces are ignored. The number blacklist takes priority; admin commands and system notifications bypass the whitelist.
+
 ## What it solves
 
 Put a phone SIM (Nano SIM, or a eUICC-capable eSIM card) in the device; it joins your WiFi and watches the 4G modem.
