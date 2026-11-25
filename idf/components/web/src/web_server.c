@@ -478,7 +478,7 @@ esp_err_t handler_save(httpd_req_t *req)
     }
     for (int i = 0; i < cfg->channel_count; i++) {
         char en_key[24], type_key[24], url_key[24], name_key[24], k1_key[24], k2_key[24],
-            body_key[24];
+            body_key[24], kw_key[24];
         snprintf(en_key, sizeof(en_key), "push%den", i);
         snprintf(type_key, sizeof(type_key), "push%dtype", i);
         snprintf(url_key, sizeof(url_key), "push%durl", i);
@@ -486,6 +486,7 @@ esp_err_t handler_save(httpd_req_t *req)
         snprintf(k1_key, sizeof(k1_key), "push%dkey1", i);
         snprintf(k2_key, sizeof(k2_key), "push%dkey2", i);
         snprintf(body_key, sizeof(body_key), "push%dbody", i);
+        snprintf(kw_key, sizeof(kw_key), "push%dkeywords", i);
 
         bool present = web_form_get(body, en_key, value, sizeof(value)) ||
                        web_form_get(body, type_key, value, sizeof(value)) ||
@@ -493,7 +494,8 @@ esp_err_t handler_save(httpd_req_t *req)
                        web_form_get(body, name_key, value, sizeof(value)) ||
                        web_form_get(body, k1_key, value, sizeof(value)) ||
                        web_form_get(body, k2_key, value, sizeof(value)) ||
-                       web_form_get(body, body_key, value, sizeof(value));
+                       web_form_get(body, body_key, value, sizeof(value)) ||
+                       web_form_get(body, kw_key, value, sizeof(value));
         if (!present) {
             continue;
         }
@@ -521,6 +523,9 @@ esp_err_t handler_save(httpd_req_t *req)
         }
         if (web_form_get(body, k2_key, value, sizeof(value))) {
             snprintf(ch->key2, sizeof(ch->key2), "%s", value);
+        }
+        if (web_form_get(body, kw_key, value, sizeof(value))) {
+            snprintf(ch->keyword_whitelist, sizeof(ch->keyword_whitelist), "%s", value);
         }
         if (web_form_get(body, body_key, value, sizeof(value))) {
             snprintf(ch->custom_body, sizeof(ch->custom_body), "%s", value);
@@ -794,7 +799,8 @@ esp_err_t handler_config(httpd_req_t *req)
         append_str_field(&out, "key2", ch->key2, true);
         /* 键名必须和前端 / 配置结构体一致（custom_body）：之前这里写成 body，
          * 前端读不到模板内容，每次保存都会被空串覆盖，自定义模板等于存不进去。 */
-        append_str_field(&out, "custom_body", ch->custom_body, false);
+        append_str_field(&out, "custom_body", ch->custom_body, true);
+        append_str_field(&out, "keyword_whitelist", ch->keyword_whitelist, false);
         sbuf_append(&out, "}");
     }
     sbuf_append(&out, "]}");

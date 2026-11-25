@@ -59,6 +59,8 @@ static void load_channel(int i)
     load_str(key, ch->key2, sizeof(ch->key2), "");
     snprintf(key, sizeof(key), "push%dbody", i);
     load_str(key, ch->custom_body, sizeof(ch->custom_body), "");
+    snprintf(key, sizeof(key), "push%dkw", i);
+    load_str(key, ch->keyword_whitelist, sizeof(ch->keyword_whitelist), "");
 }
 
 static void load_all(void)
@@ -232,9 +234,11 @@ void config_save_locked(void)
         nvs_set_str(s_nvs, key, ch->key2);
         snprintf(key, sizeof(key), "push%dbody", i);
         nvs_set_str(s_nvs, key, ch->custom_body);
+        snprintf(key, sizeof(key), "push%dkw", i);
+        nvs_set_str(s_nvs, key, ch->keyword_whitelist);
     }
     for (int i = s_config.channel_count; i < PUSH_CHANNEL_MAX; i++) {
-        const char *fields[] = {"en", "type", "url", "name", "k1", "k2", "body"};
+        const char *fields[] = {"en", "type", "url", "name", "k1", "k2", "body", "kw"};
         for (size_t f = 0; f < sizeof(fields) / sizeof(fields[0]); f++) {
             char key[16];
             snprintf(key, sizeof(key), "push%d%s", i, fields[f]);
@@ -396,12 +400,11 @@ bool config_sender_blocked(const char *sender)
 }
 
 /* 逐行匹配原始正文，避免推送模板或发送者号码影响结果。 */
-bool config_message_allowed(const char *message)
+bool config_keywords_match(const char *keywords, const char *message)
 {
-    app_config_t *cfg = config_lock();
     bool has_keyword = false;
     bool matched = false;
-    const char *p = cfg->keyword_whitelist;
+    const char *p = keywords ? keywords : "";
     while (*p) {
         const char *end = strchr(p, '\n');
         if (!end) end = p + strlen(p);
@@ -418,6 +421,13 @@ bool config_message_allowed(const char *message)
         if (matched) break;
         p = next;
     }
-    config_unlock();
     return !has_keyword || matched;
+}
+
+bool config_message_allowed(const char *message)
+{
+    app_config_t *cfg = config_lock();
+    bool allowed = config_keywords_match(cfg->keyword_whitelist, message);
+    config_unlock();
+    return allowed;
 }

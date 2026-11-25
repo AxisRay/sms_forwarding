@@ -432,6 +432,10 @@ void sendSMSToServer(const char* sender, const char* message, const char* timest
   logCaptureLn(String("\n=== 开始多通道推送 ==="));
   for (int i = 0; i < MAX_PUSH_CHANNELS; i++) {
     if (isPushChannelValid(config.pushChannels[i])) {
+      if (!keywordsMatch(config.pushChannels[i].keywordWhiteList, message)) {
+        logCaptureLn(String("[") + config.pushChannels[i].name + "] 短信未命中通道关键字白名单，跳过");
+        continue;
+      }
       sendToChannel(config.pushChannels[i], sender, message, timestamp);
       delay(100); // 短暂延迟避免请求过快
     }

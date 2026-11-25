@@ -164,6 +164,14 @@ void handleRoot() {
     channelsHtml += "</div>";
     channelsHtml += "</div>";
     
+    String keywordsHtml = config.pushChannels[i].keywordWhiteList;
+    keywordsHtml.replace("&", "&amp;");
+    keywordsHtml.replace("<", "&lt;");
+    keywordsHtml.replace(">", "&gt;");
+    channelsHtml += "<div class=\"form-group\"><label>通道关键字白名单</label>";
+    channelsHtml += "<textarea name=\"push" + idx + "keywords\" rows=\"3\">" + keywordsHtml + "</textarea>";
+    channelsHtml += "<p class=\"form-hint\">每行一个关键字，正文命中任意一项才走此通道；留空不过滤，区分大小写，忽略空行和首尾空格。全局白名单先执行。</p></div>";
+
     // 自定义模板区域
     channelsHtml += "<div id=\"custom" + idx + "\" style=\"display:none;\">";
     channelsHtml += "<div class=\"form-group\">";
@@ -930,10 +938,11 @@ void handleSave() {
     String k1Key = "push" + idx + "key1";
     String k2Key = "push" + idx + "key2";
     String bodyKey = "push" + idx + "body";
+    String kwKey = "push" + idx + "keywords";
     // 只要该通道的任一字段存在，就更新整个通道
     if (server.hasArg(enKey) || server.hasArg(typeKey) || server.hasArg(urlKey) ||
         server.hasArg(nameKey) || server.hasArg(k1Key) || server.hasArg(k2Key) ||
-        server.hasArg(bodyKey)) {
+        server.hasArg(bodyKey) || server.hasArg(kwKey)) {
       config.pushChannels[i].enabled = server.arg(enKey) == "on";
       config.pushChannels[i].type = (PushType)server.arg(typeKey).toInt();
       config.pushChannels[i].url = server.arg(urlKey);
@@ -941,6 +950,7 @@ void handleSave() {
       config.pushChannels[i].key1 = server.arg(k1Key);
       config.pushChannels[i].key2 = server.arg(k2Key);
       config.pushChannels[i].customBody = server.arg(bodyKey);
+      if (server.hasArg(kwKey)) config.pushChannels[i].keywordWhiteList = server.arg(kwKey);
       if (config.pushChannels[i].name.length() == 0) {
         config.pushChannels[i].name = "通道" + String(i + 1);
       }

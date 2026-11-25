@@ -48,6 +48,7 @@ typedef struct {
     char key1[80];
     char key2[80];
     char custom_body[256];
+    char keyword_whitelist[512]; /* 该通道的短信关键字白名单，空值放行 */
 } push_channel_t;
 
 typedef struct {
@@ -117,3 +118,4 @@ bool config_sender_is_admin(const char *sender);
 bool config_sender_blocked(const char *sender);
 /** 正文包含任一关键字时通过；空白名单放行。 */
 bool config_message_allowed(const char *message);
+bool config_keywords_match(const char *keywords, const char *message);

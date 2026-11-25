@@ -467,6 +467,10 @@ void push_send_all(const char *title, const char *message, const char *timestamp
 
     log_line("=== 开始多通道推送（%d 个，%s）===", count, is_notice ? "系统通知" : "短信");
     for (int i = 0; i < count; i++) {
+        if (!is_notice && !config_keywords_match(snap[i].keyword_whitelist, message)) {
+            log_line("[%s] 短信未命中通道关键字白名单，跳过", snap[i].name);
+            continue;
+        }
         push_send_channel(&snap[i], title, message, timestamp, is_notice);
         vTaskDelay(pdMS_TO_TICKS(100));
     }

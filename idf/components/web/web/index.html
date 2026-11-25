@@ -1230,6 +1230,7 @@ jsQR 1.4.0 — https://github.com/cozmo/jsQR — Apache License 2.0
       url: $('c' + i + 'url').value,
       key1: $('c' + i + 'key1').value,
       key2: $('c' + i + 'key2').value,
+      keyword_whitelist: $('c' + i + 'keywords').value,
       custom_body: $('c' + i + 'bodyText').value
     };
   }
@@ -1268,7 +1269,7 @@ jsQR 1.4.0 — https://github.com/cozmo/jsQR — Apache License 2.0
   function addChannel(){
     if (!S.channels || S.channels.length >= 50) { toast('最多 50 个通道', 'err'); return; }
     var list = snapshotChannels();
-    list.push({ enabled:false, type:1, name:'未命名通道', url:'', key1:'', key2:'', custom_body:'' });
+    list.push({ enabled:false, type:1, name:'未命名通道', url:'', key1:'', key2:'', custom_body:'', keyword_whitelist:'' });
     renderList(list);
     var rows = document.querySelectorAll('#channels .chan');
     var last = rows[rows.length - 1];
@@ -1321,6 +1322,7 @@ jsQR 1.4.0 — https://github.com/cozmo/jsQR — Apache License 2.0
         '<div class="field"><label id="c' + i + 'ul">推送 URL</label><input id="c' + i + 'url" value="' + esc(ch.url || '') + '" placeholder="https://"></div>' +
         '<div class="field" id="c' + i + 'w1"><label id="c' + i + 'l1">参数 1</label><input id="c' + i + 'key1" value="' + esc(ch.key1 || '') + '"></div>' +
         '<div class="field" id="c' + i + 'w2"><label id="c' + i + 'l2">参数 2</label><input id="c' + i + 'key2" value="' + esc(ch.key2 || '') + '"></div>' +
+        '<div class="field"><label>通道关键字白名单</label><textarea id="c' + i + 'keywords" rows="3">' + esc(ch.keyword_whitelist || '') + '</textarea><span class="tip">每行一个关键字，命中任意一项才走此通道；留空不过滤，区分大小写，忽略空行和首尾空格。全局白名单先执行，系统通知和测试不受影响</span></div>' +
         '<div class="field" id="c' + i + 'wb"><label>请求体模板</label><textarea id="c' + i + 'bodyText" rows="3">' + esc(ch.custom_body || '') + '</textarea><span class="tip">支持 {sender} {message} {timestamp} {self_phone}</span></div>' +
       '</div>';
     var sw = el.querySelector('#c' + i + 'en');
@@ -1380,6 +1382,7 @@ jsQR 1.4.0 — https://github.com/cozmo/jsQR — Apache License 2.0
         p.append('push' + i + 'key1', list[i].key1);
         p.append('push' + i + 'key2', list[i].key2);
         p.append('push' + i + 'body', list[i].custom_body);
+        p.append('push' + i + 'keywords', list[i].keyword_whitelist);
       }
     }
     return p.toString();
@@ -2283,6 +2286,8 @@ jsQR 1.4.0 — https://github.com/cozmo/jsQR — Apache License 2.0
     '保存账号': 'Save account',
     '保存选网配置': 'Save network selection',
     '保存邮件设置': 'Save email settings',
+    '通道关键字白名单': 'Channel keyword whitelist',
+    '每行一个关键字，命中任意一项才走此通道；留空不过滤，区分大小写，忽略空行和首尾空格。全局白名单先执行，系统通知和测试不受影响': 'One keyword per line; send through this channel when any keyword matches. Leave empty to allow all. Case-sensitive; blank lines and surrounding spaces are ignored. The global whitelist applies first. System notifications and tests bypass this filter.',
     '关键字白名单': 'Keyword whitelist',
     '每行一个关键字': 'One keyword per line',
     '保存白名单': 'Save whitelist',

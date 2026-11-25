@@ -27,6 +27,7 @@ void saveConfig() {
     preferences.putString((prefix + "k1").c_str(), config.pushChannels[i].key1);
     preferences.putString((prefix + "k2").c_str(), config.pushChannels[i].key2);
     preferences.putString((prefix + "body").c_str(), config.pushChannels[i].customBody);
+    preferences.putString((prefix + "kw").c_str(), config.pushChannels[i].keywordWhiteList);
   }
   
   preferences.end();
@@ -60,6 +61,7 @@ void loadConfig() {
     config.pushChannels[i].key1 = preferences.getString((prefix + "k1").c_str(), "");
     config.pushChannels[i].key2 = preferences.getString((prefix + "k2").c_str(), "");
     config.pushChannels[i].customBody = preferences.getString((prefix + "body").c_str(), "");
+    config.pushChannels[i].keywordWhiteList = preferences.getString((prefix + "kw").c_str(), "");
   }
   
   // 兼容旧配置：如果有旧的httpUrl配置，迁移到第一个通道
@@ -121,4 +123,21 @@ bool isConfigValid() {
 // 获取当前设备URL
 String getDeviceUrl() {
   return "http://" + WiFi.localIP().toString() + "/";
+}
+
+bool keywordsMatch(const String& keywords, const char* message) {
+  bool hasKeyword = false;
+  bool matched = false;
+  for (int start = 0; start < (int)keywords.length();) {
+    int end = keywords.indexOf('\n', start);
+    if (end < 0) end = keywords.length();
+    String keyword = keywords.substring(start, end);
+    keyword.trim();
+    if (keyword.length()) {
+      hasKeyword = true;
+      if (String(message ? message : "").indexOf(keyword) >= 0) { matched = true; break; }
+    }
+    start = end + 1;
+  }
+  return !hasKeyword || matched;
 }
